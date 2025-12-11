@@ -15,7 +15,7 @@ list(REMOVE_DUPLICATES INCLUDE_REAL_DIRS)
 
 target_include_directories(
     ${LIB_NAME_INCLUDE}
-        PUBLIC
+        INTERFACE
             ${INCLUDE_REAL_DIRS}
 )
 
