@@ -7,7 +7,10 @@
 
 
 namespace Clock {
-    SystemTime::SystemTime(QObject * parent) 
+
+    //SystemTime
+
+    SystemTime::SystemTime(QObject * parent)
     : QObject(parent) {
         this->realTimer = std::unique_ptr<QTime>(
             new(std::nothrow) QTime()
@@ -28,4 +31,13 @@ namespace Clock {
         emit currentTime(realTimer->currentTime().toString());
         return true;
     };
+
+    // Display
+
+    Display::Display(QObject * parent) : QObject(parent) {};
+
+    void Display::updateNewTime(const QString time) {
+        qInfo().quote() << time;
+        emit askTime();
+    }
 }
