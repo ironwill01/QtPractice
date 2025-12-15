@@ -11,8 +11,9 @@
 namespace Clock {
 
     class SystemTime : public QObject {
+        Q_OBJECT
+
         private :
-            Q_OBJECT
             std::unique_ptr<QTime> realTimer;
 
         public :
@@ -27,16 +28,13 @@ namespace Clock {
     };
 
     class Display : public QObject {
-        private :
-            Q_OBJECT
+        Q_OBJECT
+
         public :
             explicit Display(QObject * parent = nullptr);
 
         public slots :
             void updateNewTime(const QString time);
-
-        signals :
-            void askTime();
     };
 }
 

@@ -3,6 +3,7 @@
 #include <qdatetime.h>
 #include <qlogging.h>
 #include <qobject.h>
+#include <iostream>
 
 
 
@@ -15,7 +16,6 @@ namespace Clock {
         this->realTimer = std::unique_ptr<QTime>(
             new(std::nothrow) QTime()
         );
-        qInfo() << "SystemTime is loaded and ready !";
     };
 
     const QString SystemTime::currentSystemTime() {
@@ -37,7 +37,7 @@ namespace Clock {
     Display::Display(QObject * parent) : QObject(parent) {};
 
     void Display::updateNewTime(const QString time) {
-        qInfo().quote() << time;
-        emit askTime();
+        
+        std::cout << "\033[2J\033[H" << time.toStdString() << std::endl;
     }
 }
