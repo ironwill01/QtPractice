@@ -38,6 +38,6 @@ namespace Clock {
             system("cls");
         #endif
 
-        std::cout << "\033[2J\033[H" << time.toStdString() << std::endl;
+        std::cout << time.toStdString() << std::endl;
     }
 }
