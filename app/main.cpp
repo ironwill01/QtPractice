@@ -8,7 +8,6 @@ using namespace Clock;
 int main(int argc , char ** argv) {
     QCoreApplication app(argc , argv);
 
-
     qSetMessagePattern("%{message}");
 
     SystemTime timer;

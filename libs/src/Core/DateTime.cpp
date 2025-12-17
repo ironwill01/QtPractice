@@ -1,15 +1,10 @@
 #include <DateTime.hpp>
-#include <cstdlib>
 #include <memory>
-#include <qdatetime.h>
-#include <qlogging.h>
-#include <qobject.h>
 #include <iostream>
 
 
 
 namespace Clock {
-
     //SystemTime
 
     SystemTime::SystemTime(QObject * parent)
