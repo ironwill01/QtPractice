@@ -1,4 +1,5 @@
 #include <DateTime.hpp>
+#include <cstdlib>
 #include <memory>
 #include <qdatetime.h>
 #include <qlogging.h>
@@ -22,22 +23,26 @@ namespace Clock {
         return QTime::currentTime().toString();
     };
 
-    bool SystemTime::updateClock() {
+    void SystemTime::updateClock() {
         if(!realTimer) {
-            qCritical() << "Timer does not exist cannot update or send any system time by this call !";
-            return false;
+            qFatal() << "Timer does not exist cannot update or send any system time by this call !";
         }
 
-        emit currentTime(realTimer->currentTime().toString());
-        return true;
+        emit currentTime(realTimer->currentTime().toString("HH:mm:ss"));
     };
 
     // Display
 
     Display::Display(QObject * parent) : QObject(parent) {};
 
-    void Display::updateNewTime(const QString time) {
+    void Display::updateNewTime(const QString time) {        
         
+        #if defined (__linux__)
+            system("clear");
+        #elif defined(_WIN32)
+            system("cls");
+        #endif
+
         std::cout << "\033[2J\033[H" << time.toStdString() << std::endl;
     }
 }

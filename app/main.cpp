@@ -12,7 +12,7 @@ int main(int argc , char ** argv) {
     qSetMessagePattern("%{message}");
 
     SystemTime timer;
-    Display display;
+    Display display(&timer);
 
     if(!StartCore(&timer , &display)) {
         qCritical() << "Could not start the app !";

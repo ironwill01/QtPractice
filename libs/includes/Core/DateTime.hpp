@@ -9,7 +9,7 @@
 #include <qobject.h>
 
 namespace Clock {
-
+    
     class SystemTime : public QObject {
         Q_OBJECT
 
@@ -21,7 +21,7 @@ namespace Clock {
             static const QString currentSystemTime();
 
         public slots :
-            bool updateClock();
+            void updateClock();
 
         signals :
             void currentTime(const QString time);
