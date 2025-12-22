@@ -1,27 +1,6 @@
-#include <DateTime.hpp>
-#include <Binder.hpp>
-#include <QCoreApplication>
-#include <QTimer>
-
-using namespace Clock;
+#include <iostream>
 
 int main(int argc , char ** argv) {
-    QCoreApplication app(argc , argv);
 
-    qSetMessagePattern("%{message}");
-
-    SystemTime timer;
-    Display display(&timer);
-
-    if(!StartCore(&timer , &display)) {
-        qCritical() << "Could not start the app !";
-        return 1;
-    }
-    
-    QTimer updateTimer;
-    updateTimer.setParent(&app);
-    QObject::connect(&updateTimer, &QTimer::timeout, &timer, &SystemTime::updateClock);
-    updateTimer.start(1000);
-
-    return app.exec();
+    return 0;
 }
