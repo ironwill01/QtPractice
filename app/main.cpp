@@ -2,6 +2,7 @@
 #include <qcoreapplication.h>
 #include <Debugger.hpp>
 #include <qdir.h>
+#include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
 #include <qjsonvalue.h>
@@ -48,10 +49,31 @@ bool saveFile(const Test & dataTest) {
 
 bool writeJson(const QJsonObject & obj) {
     QFile jsonFile("./data.json");
-    if(!jsonFile.open(QIODevice::WriteOnly)) return false;
+    if(!jsonFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
 
     QJsonDocument jsonDoc = QJsonDocument(obj);
-    jsonFile.write(jsonDoc.toJson());
+    jsonFile.write(jsonDoc.toJson(QJsonDocument::Indented));
+
+    jsonFile.close();
+
+    return true;
+}
+
+bool readJson(QJsonObject & obj) {
+    QFile jsonFile("./data.json");
+    if(!jsonFile.open(QIODevice::ReadOnly)) return false;    
+    if(!obj.isEmpty()) obj = QJsonObject();
+
+    const QByteArray & bytes = jsonFile.readAll();
+    
+    jsonFile.close();
+
+    const QJsonDocument & doc = QJsonDocument::fromJson(bytes);
+
+    if(!doc.isObject()) return false;
+
+    obj = doc.object();
+
     jsonFile.close();
 
     return true;
@@ -80,6 +102,9 @@ int main(int argc , char ** argv) {
 
     json << data;
     writeJson(json);
+    readJson(json);
+
+    qInfo() << json;
 
     return 0;
 }
