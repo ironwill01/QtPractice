@@ -2,89 +2,136 @@
 #include <qcoreapplication.h>
 #include <Debugger.hpp>
 #include <qdir.h>
-#include <qjsonarray.h>
-#include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonvalue.h>
+#include <qfileinfo.h>
 #include <qlogging.h>
 #include <QDebug>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <qobject.h>
+#include <qtypes.h>
+#include <qxmlstream.h>
 #include <test.hpp>
 
-bool loadFile(Test & dataTest) {
-    QFile file("./test.txt");
-    if(!file.open(QIODevice::ReadOnly)) return false;
-
-    QDataStream ds(&file);
-    ds.setVersion(QDataStream::Version::Qt_6_10);
+bool writeXML(const Test & obj , const QString & path) {
+    if(QFileInfo(path).suffix() != "xml") {
+        qCritical() << "File is not XML returning !";
+        return false;
+    } 
     
-    if(ds.version() != QDataStream::Version::Qt_6_10) {
-       qWarning() << "Data stream is not compatible exiting ...";
-       return false; 
-    }
+    QFile file(path);
     
-    ds >> dataTest;
-    return true;
-}
-
-bool saveFile(const Test & dataTest) {
-    QFile file("./test.txt");
-    if(!file.open(QIODevice::WriteOnly)) return false;
-
-    QDataStream ds(&file);
-    ds.setVersion(QDataStream::Version::Qt_6_10);
-    
-    if(ds.version() != QDataStream::Version::Qt_6_10) {
-       qWarning() << "Data stream is not compatible exiting ...";
-       return false; 
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qCritical() << "Could not write file !";
+        qCritical() << file.errorString();
+        return false;
     }
 
-    ds << dataTest;
+    QXmlStreamWriter stream(&file);
+    stream.setAutoFormatting(true);
+
+    stream.writeStartDocument();
+        stream.writeStartElement("data");
+            for(const auto & key : obj.getMapConst().keys()) {
+                stream.writeStartElement("row");
+                stream.writeAttribute("id" , QString::number(key));
+                for(const auto & value : obj.getMapConst().value(key)) {
+                    stream.writeTextElement("value" , value);
+                }
+                stream.writeEndElement();
+            }
+        stream.writeEndElement();
+    stream.writeEndDocument();
+
+    file.close();
 
     return true;
 }
 
-bool writeJson(const QJsonObject & obj) {
-    QFile jsonFile("./data.json");
-    if(!jsonFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
+bool readXML(Test & obj , const QString & path) {
 
-    QJsonDocument jsonDoc = QJsonDocument(obj);
-    jsonFile.write(jsonDoc.toJson(QJsonDocument::Indented));
-
-    jsonFile.close();
-
-    return true;
-}
-
-bool readJson(QJsonObject & obj) {
-    QFile jsonFile("./data.json");
-    if(!jsonFile.open(QIODevice::ReadOnly)) return false;    
-    if(!obj.isEmpty()) obj = QJsonObject();
-
-    const QByteArray & bytes = jsonFile.readAll();
+    if(QFileInfo(path).suffix() != "xml") {
+        qCritical() << "File is not XML returning !";
+        return false;
+    } 
     
-    jsonFile.close();
+    QFile file(path);
+    
+    if(!file.open(QIODevice::ReadOnly)) {
+        qCritical() << "Could not write file !";
+        qCritical() << file.errorString();
+        return false;
+    }
 
-    const QJsonDocument & doc = QJsonDocument::fromJson(bytes);
+    QXmlStreamReader stream(&file);
+    QMap<qint32, QStringMap> & objDataRef = obj.getMap();
+    objDataRef.clear(); 
 
-    if(!doc.isObject()) return false;
+    qint32 currentRowId = -1;
 
-    obj = doc.object();
+    while(!stream.atEnd()) {
+        QXmlStreamReader::TokenType token = stream.readNext();
+        switch(token) {
+            case QXmlStreamReader::Comment :
+                //Skip
+            break;
 
-    jsonFile.close();
+            case QXmlStreamReader::DTD :
+                //Skip
+            break;
+
+            case QXmlStreamReader::Characters :
+                //Skip
+            break;
+
+            case QXmlStreamReader::ProcessingInstruction :
+                //Skip
+            break;
+
+            case QXmlStreamReader::EntityReference :
+                //Skip
+            break;
+
+            case QXmlStreamReader::NoToken :
+                //Skip
+            break;
+
+            case QXmlStreamReader::Invalid :
+                //Skip
+            break;
+            
+            case QXmlStreamReader::StartDocument :
+                //Skip
+            break;
+
+            case QXmlStreamReader::EndDocument :
+                file.close();
+                return true;
+            break;
+
+            case QXmlStreamReader::StartElement :
+                if(stream.name().toString() == "row") {
+                    currentRowId = stream.attributes().value("id").toInt();
+                    objDataRef[currentRowId] = QStringMap();
+                }
+                if(stream.name().toString() == "value" && currentRowId != -1) {
+                    QString val = stream.readElementText().trimmed();
+                    objDataRef[currentRowId].append(val);
+                }
+            break;
+
+            case QXmlStreamReader::EndElement :
+                if(stream.isEndElement() && stream.name().toString() == "row") currentRowId = -1;
+            break;
+
+        }
+    }
 
     return true;
 }
-
 
 int main(int argc , char ** argv) {
     
-    // if(argc < 2) {
-    //     qInfo() << "Enter an directory path !";
-    // }
+    if(argc < 2) {
+         qInfo() << "Enter an directory path !";
+    }
 
     qInstallMessageHandler(handler);
 
@@ -98,13 +145,9 @@ int main(int argc , char ** argv) {
 
     Test data(&app , map);
 
-    QJsonObject json = QJsonObject();
+    readXML(data , argv[1]);
 
-    json << data;
-    writeJson(json);
-    readJson(json);
-
-    qInfo() << json;
+    data.printData();
 
     return 0;
 }
