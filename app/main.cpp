@@ -109,7 +109,7 @@ bool readXML(Test & obj , const QString & path) {
             case QXmlStreamReader::StartElement :
                 if(stream.name().toString() == "row") {
                     currentRowId = stream.attributes().value("id").toInt();
-                    objDataRef[currentRowId] = QStringMap();
+                    objDataRef[currentRowId] = QStringList();
                 }
                 if(stream.name().toString() == "value" && currentRowId != -1) {
                     QString val = stream.readElementText().trimmed();
